@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake Game</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      border: 2px solid white;
+      background: #333;
+    }
+    .info {
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div class="info">
+      <p>Use arrow keys to play. Score: <span id="score">0</span></p>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const boxSize = 20; // Size of each cell
+    const canvasSize = canvas.width; // Canvas dimensions
+    const rows = canvasSize / boxSize;
+
+    let snake = [{ x: 10, y: 10 }]; // Snake's initial position in the middle
+    let direction = { x: 1, y: 0 }; // Initial direction moving right
+    let food = generateFood(); // Food's initial position
+    let score = 0;
+
+    // Draw the board
+    function drawCell(x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+    }
+
+    // Generate a random position for the food
+    function generateFood() {
+      let foodX, foodY;
+      do {
+        foodX = Math.floor(Math.random() * rows);
+        foodY = Math.floor(Math.random() * rows);
+      } while (snake.some(segment => segment.x === foodX && segment.y === foodY)); // Ensure food does not spawn on the snake
+      return { x: foodX, y: foodY };
+    }
+
+    // Main game loop
+    function gameLoop() {
+      const head = {
+        x: snake[0].x + direction.x,
+        y: snake[0].y + direction.y,
+      };
+
+      // Check for collisions with walls or itself
+      if (
+        head.x < 0 || head.y < 0 ||
+        head.x >= rows || head.y >= rows ||
+        snake.some(segment => segment.x === head.x && segment.y === head.y)
+      ) {
+        alert('Game Over! Your score: ' + score);
+        document.location.reload();
+        return;
+      }
+
+      snake.unshift(head); // Add new head
+
+      // Check if the snake eats food
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        document.getElementById('score').textContent = score;
+        food = generateFood(); // Spawn new food
+      } else {
+        snake.pop(); // Remove tail if no food eaten
+      }
+
+      // Draw everything
+      ctx.clearRect(0, 0, canvasSize, canvasSize);
+      drawCell(food.x, food.y, 'red'); // Draw food
+      snake.forEach(segment => drawCell(segment.x, segment.y, 'lime')); // Draw snake
+    }
+
+    // Change direction on key press
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp' && direction.y === 0) direction = { x: 0, y: -1 };
+      if (e.key === 'ArrowDown' && direction.y === 0) direction = { x: 0, y: 1 };
+      if (e.key === 'ArrowLeft' && direction.x === 0) direction = { x: -1, y: 0 };
+      if (e.key === 'ArrowRight' && direction.x === 0) direction = { x: 1, y: 0 };
+    });
+
+    // Start the game loop
+    setInterval(gameLoop, 100);
+  </script>
+</body>
+</html>
